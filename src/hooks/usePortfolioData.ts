@@ -152,12 +152,12 @@ export function usePortfolioSummary() {
   const totalReturn = totalValue - totalCost;
   const totalReturnPercent = totalCost > 0 ? (totalReturn / totalCost) * 100 : 0;
 
-  // Mock day's gain (random for demo)
-  const dayGain = totalValue * 0.0125;
-  const dayGainPercent = 1.25;
+  // Day's gain would require historical price data - showing 0 for now
+  const dayGain = 0;
+  const dayGainPercent = 0;
 
-  // Mock cash balance
-  const cashBalance = 15420.50;
+  // Cash balance would require a separate cash transactions table - showing 0 for now
+  const cashBalance = 0;
 
   return {
     totalValue,
