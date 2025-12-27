@@ -17,6 +17,15 @@ export function usePriceUpdate() {
   const { session } = useAuth();
 
   const updatePrices = async (tickers: string[]) => {
+    if (!session?.access_token) {
+      toast({
+        title: "Faça login novamente",
+        description: "Sua sessão expirou. Entre novamente para atualizar cotações.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (tickers.length === 0) {
       toast({
         title: "Nenhum ativo",
@@ -32,7 +41,7 @@ export function usePriceUpdate() {
       const { data, error } = await supabase.functions.invoke<PriceUpdateResult>("update-prices", {
         body: { tickers },
         headers: {
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
