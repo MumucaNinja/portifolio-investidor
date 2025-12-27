@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Ban, Trash2, UserCheck } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateBR } from "@/lib/formatters";
 
 interface Profile {
   id: string;
@@ -36,7 +36,7 @@ export function UserManagement() {
       supabase.from("user_roles").select("user_id, role"),
     ]);
     
-    if (profilesRes.error) toast({ variant: "destructive", title: "Error", description: profilesRes.error.message });
+    if (profilesRes.error) toast({ variant: "destructive", title: "Erro", description: profilesRes.error.message });
     else setProfiles(profilesRes.data || []);
 
     if (rolesRes.data) {
@@ -50,40 +50,39 @@ export function UserManagement() {
   const toggleBan = async (profile: Profile) => {
     const newBanned = !profile.is_banned;
     const { error } = await supabase.from("profiles").update({ is_banned: newBanned }).eq("id", profile.id);
-    if (error) toast({ variant: "destructive", title: "Error", description: error.message });
-    else { toast({ title: newBanned ? "User banned" : "User unbanned" }); fetchUsers(); }
+    if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
+    else { toast({ title: newBanned ? "Usuário banido" : "Usuário desbanido" }); fetchUsers(); }
   };
 
   const deleteUser = async (id: string) => {
-    if (!confirm("This will remove the user's profile and roles. Are you sure?")) return;
-    // Delete from profiles (cascade will handle user_roles)
+    if (!confirm("Isso removerá o perfil e as permissões do usuário. Tem certeza?")) return;
     const { error } = await supabase.from("profiles").delete().eq("id", id);
-    if (error) toast({ variant: "destructive", title: "Error", description: error.message });
-    else { toast({ title: "User deleted" }); fetchUsers(); }
+    if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
+    else { toast({ title: "Usuário excluído" }); fetchUsers(); }
   };
 
   const promoteToAdmin = async (userId: string) => {
-    if (!confirm("Promote this user to admin?")) return;
+    if (!confirm("Promover este usuário para admin?")) return;
     const { error } = await supabase.from("user_roles").update({ role: "admin" }).eq("user_id", userId);
-    if (error) toast({ variant: "destructive", title: "Error", description: error.message });
-    else { toast({ title: "User promoted to admin" }); fetchUsers(); }
+    if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
+    else { toast({ title: "Usuário promovido a admin" }); fetchUsers(); }
   };
 
   return (
     <Card className="glass-card">
-      <CardHeader><CardTitle>User Management</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Gerenciamento de Usuários</CardTitle></CardHeader>
       <CardContent>
         {isLoading ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : profiles.length === 0 ? (
-          <p className="text-muted-foreground">No users found.</p>
+          <p className="text-muted-foreground">Nenhum usuário encontrado.</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>Usuário</TableHead>
+                <TableHead>Função</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Cadastro</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -91,33 +90,33 @@ export function UserManagement() {
                 <TableRow key={p.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{p.full_name || "No name"}</p>
+                      <p className="font-medium">{p.full_name || "Sem nome"}</p>
                       <p className="text-xs text-muted-foreground">{p.email}</p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant={roles[p.id] === "admin" ? "default" : "secondary"}>
-                      {roles[p.id] || "user"}
+                      {roles[p.id] === "admin" ? "Admin" : "Usuário"}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={p.is_banned ? "destructive" : "outline"}>
-                      {p.is_banned ? "Banned" : "Active"}
+                      {p.is_banned ? "Banido" : "Ativo"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {format(new Date(p.created_at), "MMM d, yyyy")}
+                    {formatDateBR(p.created_at)}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
                     {roles[p.id] !== "admin" && (
-                      <Button variant="ghost" size="icon" onClick={() => promoteToAdmin(p.id)} title="Promote to Admin">
+                      <Button variant="ghost" size="icon" onClick={() => promoteToAdmin(p.id)} title="Promover a Admin">
                         <UserCheck className="h-4 w-4 text-gain" />
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon" onClick={() => toggleBan(p)} title={p.is_banned ? "Unban" : "Ban"}>
+                    <Button variant="ghost" size="icon" onClick={() => toggleBan(p)} title={p.is_banned ? "Desbanir" : "Banir"}>
                       <Ban className={`h-4 w-4 ${p.is_banned ? "text-gain" : "text-loss"}`} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteUser(p.id)} title="Delete">
+                    <Button variant="ghost" size="icon" onClick={() => deleteUser(p.id)} title="Excluir">
                       <Trash2 className="h-4 w-4 text-loss" />
                     </Button>
                   </TableCell>

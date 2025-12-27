@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { TrendingUp, Loader2 } from "lucide-react";
 import { z } from "zod";
 
-const emailSchema = z.string().email("Invalid email address");
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const emailSchema = z.string().email("E-mail inválido");
+const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -44,7 +44,7 @@ export default function Auth() {
     }
 
     if (!isLogin && !fullName.trim()) {
-      newErrors.fullName = "Full name is required";
+      newErrors.fullName = "Nome completo é obrigatório";
     }
 
     setErrors(newErrors);
@@ -64,13 +64,13 @@ export default function Auth() {
         if (error) {
           toast({
             variant: "destructive",
-            title: "Login failed",
-            description: error.message,
+            title: "Falha no login",
+            description: error.message === "Invalid login credentials" ? "Credenciais inválidas" : error.message,
           });
         } else {
           toast({
-            title: "Welcome back!",
-            description: "Successfully logged in.",
+            title: "Bem-vindo de volta!",
+            description: "Login realizado com sucesso.",
           });
           navigate("/dashboard");
         }
@@ -79,13 +79,13 @@ export default function Auth() {
         if (error) {
           toast({
             variant: "destructive",
-            title: "Sign up failed",
-            description: error.message,
+            title: "Falha no cadastro",
+            description: error.message.includes("already registered") ? "Este e-mail já está cadastrado" : error.message,
           });
         } else {
           toast({
-            title: "Account created!",
-            description: "You can now log in.",
+            title: "Conta criada!",
+            description: "Você já pode fazer login.",
           });
           setIsLogin(true);
         }
@@ -110,25 +110,25 @@ export default function Auth() {
           <div className="p-2 rounded-xl bg-primary/10">
             <TrendingUp className="h-8 w-8 text-primary" />
           </div>
-          <span className="text-2xl font-bold text-foreground">Portfolio Tracker</span>
+          <span className="text-2xl font-bold text-foreground">Rastreador de Portfólio</span>
         </div>
 
         <Card className="glass-card border-border/50">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">{isLogin ? "Welcome back" : "Create account"}</CardTitle>
+            <CardTitle className="text-2xl">{isLogin ? "Bem-vindo de volta" : "Criar conta"}</CardTitle>
             <CardDescription>
-              {isLogin ? "Enter your credentials to access your portfolio" : "Start tracking your investments today"}
+              {isLogin ? "Digite suas credenciais para acessar seu portfólio" : "Comece a rastrear seus investimentos hoje"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">Nome Completo</Label>
                   <Input
                     id="fullName"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="João Silva"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="bg-secondary/50"
@@ -139,11 +139,11 @@ export default function Auth() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="voce@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-secondary/50"
@@ -153,7 +153,7 @@ export default function Auth() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Senha</Label>
                 <Input
                   id="password"
                   type="password"
@@ -172,7 +172,7 @@ export default function Auth() {
                 disabled={isSubmitting}
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLogin ? "Sign In" : "Create Account"}
+                {isLogin ? "Entrar" : "Criar Conta"}
               </Button>
             </form>
 
@@ -185,7 +185,7 @@ export default function Auth() {
                 }}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                {isLogin ? "Não tem uma conta? Cadastre-se" : "Já tem uma conta? Entre"}
               </button>
             </div>
           </CardContent>

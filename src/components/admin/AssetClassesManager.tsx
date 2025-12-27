@@ -32,7 +32,7 @@ export function AssetClassesManager() {
   const fetchAssetClasses = async () => {
     setIsLoading(true);
     const { data, error } = await supabase.from("asset_classes").select("*").order("name");
-    if (error) toast({ variant: "destructive", title: "Error", description: error.message });
+    if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
     else setAssetClasses(data || []);
     setIsLoading(false);
   };
@@ -50,7 +50,7 @@ export function AssetClassesManager() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      toast({ variant: "destructive", title: "Error", description: "Name is required" });
+      toast({ variant: "destructive", title: "Erro", description: "Nome é obrigatório" });
       return;
     }
     setIsSaving(true);
@@ -58,39 +58,39 @@ export function AssetClassesManager() {
 
     if (editingClass) {
       const { error } = await supabase.from("asset_classes").update(payload).eq("id", editingClass.id);
-      if (error) toast({ variant: "destructive", title: "Error", description: error.message });
-      else { toast({ title: "Updated!" }); fetchAssetClasses(); setIsModalOpen(false); }
+      if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
+      else { toast({ title: "Atualizado!" }); fetchAssetClasses(); setIsModalOpen(false); }
     } else {
       const { error } = await supabase.from("asset_classes").insert(payload);
-      if (error) toast({ variant: "destructive", title: "Error", description: error.message });
-      else { toast({ title: "Created!" }); fetchAssetClasses(); setIsModalOpen(false); }
+      if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
+      else { toast({ title: "Criado!" }); fetchAssetClasses(); setIsModalOpen(false); }
     }
     setIsSaving(false);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this asset class?")) return;
+    if (!confirm("Excluir esta classe de ativo?")) return;
     const { error } = await supabase.from("asset_classes").delete().eq("id", id);
-    if (error) toast({ variant: "destructive", title: "Error", description: error.message });
-    else { toast({ title: "Deleted!" }); fetchAssetClasses(); }
+    if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
+    else { toast({ title: "Excluído!" }); fetchAssetClasses(); }
   };
 
   return (
     <Card className="glass-card">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Asset Classes</CardTitle>
-        <Button size="sm" onClick={() => openModal()}><Plus className="h-4 w-4 mr-1" />Add</Button>
+        <CardTitle>Classes de Ativos</CardTitle>
+        <Button size="sm" onClick={() => openModal()}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
       </CardHeader>
       <CardContent>
         {isLoading ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Color</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Cor</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Ativo</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -99,7 +99,7 @@ export function AssetClassesManager() {
                   <TableCell><div className="w-6 h-6 rounded-full" style={{ backgroundColor: ac.color }} /></TableCell>
                   <TableCell className="font-medium">{ac.name}</TableCell>
                   <TableCell className="text-muted-foreground">{ac.description || "-"}</TableCell>
-                  <TableCell>{ac.is_active ? "Yes" : "No"}</TableCell>
+                  <TableCell>{ac.is_active ? "Sim" : "Não"}</TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button variant="ghost" size="icon" onClick={() => openModal(ac)}><Pencil className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(ac.id)}><Trash2 className="h-4 w-4 text-loss" /></Button>
@@ -113,16 +113,16 @@ export function AssetClassesManager() {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card">
-          <DialogHeader><DialogTitle>{editingClass ? "Edit" : "Add"} Asset Class</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingClass ? "Editar" : "Adicionar"} Classe de Ativo</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div><Label>Name</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-            <div><Label>Description</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
-            <div><Label>Color</Label><Input type="color" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} className="h-10 w-20 p-1" /></div>
-            <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({ ...formData, is_active: v })} /><Label>Active</Label></div>
+            <div><Label>Nome</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
+            <div><Label>Descrição</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+            <div><Label>Cor</Label><Input type="color" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} className="h-10 w-20 p-1" /></div>
+            <div className="flex items-center gap-2"><Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({ ...formData, is_active: v })} /><Label>Ativo</Label></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={isSaving}>{isSaving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Save</Button>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={isSaving}>{isSaving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

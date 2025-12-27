@@ -24,23 +24,23 @@ export default function Admin() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Panel</h1>
-          <p className="text-muted-foreground">Manage assets, users, and platform settings</p>
+          <h1 className="text-3xl font-bold text-foreground">Painel Admin</h1>
+          <p className="text-muted-foreground">Gerencie ativos, usuários e configurações</p>
         </div>
 
         <Tabs defaultValue="assets" className="w-full">
           <TabsList className="bg-secondary/50 mb-6">
             <TabsTrigger value="assets" className="gap-2">
               <Package className="h-4 w-4" />
-              Asset Classes
+              Classes de Ativos
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
-              Users
+              Usuários
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
-              Settings
+              Configurações
             </TabsTrigger>
           </TabsList>
 
