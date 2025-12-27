@@ -41,6 +41,7 @@ const navItems = [
   { to: "/dashboard", label: "Início", icon: LayoutDashboard },
   { to: "/holdings", label: "Carteira", icon: Briefcase },
   { to: "/transactions", label: "Transações", icon: ArrowUpDown },
+  { to: "/mercado", label: "Mercado", icon: TrendingUp },
   { to: "/analytics", label: "Análises", icon: BarChart3 },
   { to: "/settings", label: "Configurações", icon: Settings },
 ];

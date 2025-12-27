@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PriceUpdateResult {
   prices: Record<string, number>;
@@ -13,6 +14,7 @@ export function usePriceUpdate() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
+  const { session } = useAuth();
 
   const updatePrices = async (tickers: string[]) => {
     if (tickers.length === 0) {
@@ -29,6 +31,9 @@ export function usePriceUpdate() {
     try {
       const { data, error } = await supabase.functions.invoke<PriceUpdateResult>("update-prices", {
         body: { tickers },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
       });
 
       if (error) {

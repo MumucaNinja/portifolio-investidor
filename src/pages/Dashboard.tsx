@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { usePortfolioSummary } from "@/hooks/usePortfolioData";
 import { usePriceUpdate } from "@/hooks/usePriceUpdate";
+import { useAuth } from "@/contexts/AuthContext";
 import { TrendingUp, TrendingDown, Wallet, DollarSign, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrencyBRL, formatPercentBR, formatDateLongBR } from "@/lib/formatters";
 
 export default function Dashboard() {
+  const { isAdmin } = useAuth();
   const { prices, lastUpdated, isUpdating, updatePrices } = usePriceUpdate();
   const { totalValue, totalReturn, totalReturnPercent, dayGain, dayGainPercent, cashBalance, tickers, isLoading } = usePortfolioSummary(prices);
 
@@ -58,15 +60,17 @@ export default function Dashboard() {
                 Atualizado: {formatDateLongBR(lastUpdated)}
               </span>
             )}
-            <Button
-              onClick={handleUpdatePrices}
-              disabled={isUpdating || tickers.length === 0}
-              variant="outline"
-              size="sm"
-            >
-              <RefreshCw className={cn("h-4 w-4 mr-2", isUpdating && "animate-spin")} />
-              {isUpdating ? "Atualizando..." : "Atualizar Cotações"}
-            </Button>
+            {isAdmin && (
+              <Button
+                onClick={handleUpdatePrices}
+                disabled={isUpdating || tickers.length === 0}
+                variant="outline"
+                size="sm"
+              >
+                <RefreshCw className={cn("h-4 w-4 mr-2", isUpdating && "animate-spin")} />
+                {isUpdating ? "Atualizando..." : "Atualizar Cotações"}
+              </Button>
+            )}
           </div>
         </div>
 
