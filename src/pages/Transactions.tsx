@@ -4,15 +4,72 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useTransactions } from "@/hooks/usePortfolioData";
 import { AddTransactionModal } from "@/components/transactions/AddTransactionModal";
-import { Plus } from "lucide-react";
+import { EditTransactionModal } from "@/components/transactions/EditTransactionModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrencyBRL, formatDateBR, formatNumberBR } from "@/lib/formatters";
+
+interface Transaction {
+  id: string;
+  ticker: string;
+  asset_name: string;
+  asset_class_id: string;
+  transaction_type: string;
+  transaction_date: string;
+  quantity: number;
+  price_per_unit: number;
+  fees: number | null;
+  total_value: number;
+}
 
 export default function Transactions() {
   const { data: transactions, isLoading } = useTransactions();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
+  const [deleteTransaction, setDeleteTransaction] = useState<Transaction | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const handleDelete = async () => {
+    if (!deleteTransaction) return;
+
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", deleteTransaction.id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Sucesso!",
+        description: "Transação excluída com sucesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["holdings"] });
+      queryClient.invalidateQueries({ queryKey: ["portfolio-summary"] });
+    }
+    setDeleteTransaction(null);
+  };
 
   return (
     <DashboardLayout>
@@ -48,6 +105,7 @@ export default function Transactions() {
                     <TableHead className="text-right">Qtd</TableHead>
                     <TableHead className="text-right">Preço</TableHead>
                     <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -64,6 +122,26 @@ export default function Transactions() {
                       <TableCell className="text-right">{formatNumberBR(tx.quantity, 4)}</TableCell>
                       <TableCell className="text-right">{formatCurrencyBRL(tx.price_per_unit)}</TableCell>
                       <TableCell className="text-right font-medium">{formatCurrencyBRL(tx.total_value)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setEditTransaction(tx as Transaction)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-loss hover:text-loss"
+                            onClick={() => setDeleteTransaction(tx as Transaction)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -72,7 +150,31 @@ export default function Transactions() {
           </CardContent>
         </Card>
       </div>
+
       <AddTransactionModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      
+      <EditTransactionModal
+        open={!!editTransaction}
+        onOpenChange={(open) => !open && setEditTransaction(null)}
+        transaction={editTransaction}
+      />
+
+      <AlertDialog open={!!deleteTransaction} onOpenChange={(open) => !open && setDeleteTransaction(null)}>
+        <AlertDialogContent className="bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a transação de {deleteTransaction?.ticker}? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-loss hover:bg-loss/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
