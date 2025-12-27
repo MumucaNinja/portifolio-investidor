@@ -1,1 +1,4 @@
 project_id = "zjqooguflbealyianaqv"
+
+[functions.update-prices]
+verify_jwt = false
