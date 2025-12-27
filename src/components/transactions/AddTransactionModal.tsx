@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { transactionSchema } from "@/lib/validations";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,7 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
   const [assetClasses, setAssetClasses] = useState<AssetClass[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [ticker, setTicker] = useState("");
   const [assetName, setAssetName] = useState("");
@@ -67,6 +69,7 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
   useEffect(() => {
     if (open) {
       fetchAssetClasses();
+      setErrors({});
     }
   }, [open]);
 
@@ -99,16 +102,39 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
     setQuantity("");
     setPricePerUnit("");
     setFees("0");
+    setErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
-    if (!ticker || !assetName || !assetClassId || !quantity || !pricePerUnit) {
+    // Validate with zod
+    const formData = {
+      ticker: ticker.toUpperCase(),
+      asset_name: assetName,
+      asset_class_id: assetClassId,
+      transaction_type: transactionType,
+      quantity: parseFloat(quantity) || 0,
+      price_per_unit: parseFloat(pricePerUnit) || 0,
+      fees: parseFloat(fees) || 0,
+      transaction_date: transactionDate,
+    };
+
+    const result = transactionSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
       toast({
         variant: "destructive",
         title: "Erro de Validação",
-        description: "Por favor, preencha todos os campos obrigatórios",
+        description: "Por favor, corrija os erros no formulário",
       });
       return;
     }
@@ -126,15 +152,15 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
 
     const { error } = await supabase.from("transactions").insert({
       user_id: user.id,
-      ticker: ticker.toUpperCase(),
-      asset_name: assetName,
-      asset_class_id: assetClassId,
-      transaction_type: transactionType,
-      transaction_date: format(transactionDate, "yyyy-MM-dd"),
-      quantity: parseFloat(quantity),
-      price_per_unit: parseFloat(pricePerUnit),
-      fees: parseFloat(fees) || 0,
-      total_value: totalValue,
+      ticker: result.data.ticker,
+      asset_name: result.data.asset_name,
+      asset_class_id: result.data.asset_class_id,
+      transaction_type: result.data.transaction_type,
+      transaction_date: format(result.data.transaction_date, "yyyy-MM-dd"),
+      quantity: result.data.quantity,
+      price_per_unit: result.data.price_per_unit,
+      fees: result.data.fees,
+      total_value: result.data.quantity * result.data.price_per_unit + result.data.fees,
     });
 
     if (error) {
@@ -176,9 +202,11 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                 id="ticker"
                 placeholder="PETR4"
                 value={ticker}
-                onChange={(e) => setTicker(e.target.value)}
-                className="uppercase"
+                onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                className={cn("uppercase", errors.ticker && "border-loss")}
+                maxLength={10}
               />
+              {errors.ticker && <p className="text-xs text-loss">{errors.ticker}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="assetName">Nome do Ativo *</Label>
@@ -187,7 +215,10 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                 placeholder="Petrobras PN"
                 value={assetName}
                 onChange={(e) => setAssetName(e.target.value)}
+                className={cn(errors.asset_name && "border-loss")}
+                maxLength={100}
               />
+              {errors.asset_name && <p className="text-xs text-loss">{errors.asset_name}</p>}
             </div>
           </div>
 
@@ -278,10 +309,13 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                 id="quantity"
                 type="number"
                 step="any"
+                min="0.0001"
                 placeholder="100"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
+                className={cn(errors.quantity && "border-loss")}
               />
+              {errors.quantity && <p className="text-xs text-loss">{errors.quantity}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="price">Preço/Unidade *</Label>
@@ -289,10 +323,13 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                 id="price"
                 type="number"
                 step="any"
+                min="0.01"
                 placeholder="38,50"
                 value={pricePerUnit}
                 onChange={(e) => setPricePerUnit(e.target.value)}
+                className={cn(errors.price_per_unit && "border-loss")}
               />
+              {errors.price_per_unit && <p className="text-xs text-loss">{errors.price_per_unit}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="fees">Taxas</Label>
@@ -300,10 +337,13 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                 id="fees"
                 type="number"
                 step="any"
+                min="0"
                 placeholder="0"
                 value={fees}
                 onChange={(e) => setFees(e.target.value)}
+                className={cn(errors.fees && "border-loss")}
               />
+              {errors.fees && <p className="text-xs text-loss">{errors.fees}</p>}
             </div>
           </div>
 
