@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,11 +13,59 @@ serve(async (req) => {
   }
 
   try {
+    // Verify JWT authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('Authentication failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Authenticated user: ${user.id}`);
+
     const { tickers } = await req.json();
 
     if (!tickers || !Array.isArray(tickers) || tickers.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Tickers array is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate tickers input
+    const maxTickers = 50;
+    if (tickers.length > maxTickers) {
+      return new Response(
+        JSON.stringify({ error: `Maximum ${maxTickers} tickers allowed` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const tickerRegex = /^[A-Z0-9]{1,10}$/;
+    const validTickers = tickers.filter((t: unknown) => 
+      typeof t === 'string' && tickerRegex.test(t)
+    );
+
+    if (validTickers.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No valid tickers provided' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -31,7 +80,7 @@ serve(async (req) => {
     }
 
     // Join tickers with comma for the API call
-    const tickersParam = tickers.join(',');
+    const tickersParam = validTickers.join(',');
     const apiUrl = `https://brapi.dev/api/quote/${tickersParam}?token=${BRAPI_TOKEN}`;
 
     console.log(`Fetching prices for tickers: ${tickersParam}`);
