@@ -183,3 +183,90 @@ export function useAssetAllocation(externalPrices?: Record<string, number>) {
 
   return { allocation, isLoading };
 }
+
+interface MonthlyDividend {
+  month: string;
+  value: number;
+  fullDate: string;
+}
+
+export function useDividends() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["dividends", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("transaction_type", "dividend")
+        .order("transaction_date", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+}
+
+export function useMonthlyDividends() {
+  const { data: dividends, isLoading } = useDividends();
+
+  const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  
+  // Get current year
+  const currentYear = new Date().getFullYear();
+  
+  // Initialize all months with zero
+  const monthlyMap = new Map<string, number>();
+  for (let i = 0; i < 12; i++) {
+    monthlyMap.set(`${currentYear}-${String(i + 1).padStart(2, '0')}`, 0);
+  }
+
+  // Sum dividends by month
+  if (dividends) {
+    for (const tx of dividends) {
+      const date = new Date(tx.transaction_date);
+      const year = date.getFullYear();
+      
+      // Only include current year dividends
+      if (year === currentYear) {
+        const key = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const existing = monthlyMap.get(key) || 0;
+        monthlyMap.set(key, existing + tx.total_value);
+      }
+    }
+  }
+
+  // Convert to array format for chart
+  const monthlyDividends: MonthlyDividend[] = [];
+  for (const [key, value] of monthlyMap) {
+    const [year, month] = key.split('-');
+    const monthIndex = parseInt(month) - 1;
+    monthlyDividends.push({
+      month: monthNames[monthIndex],
+      value,
+      fullDate: key,
+    });
+  }
+
+  // Calculate stats
+  const totalDividends = monthlyDividends.reduce((sum, m) => sum + m.value, 0);
+  const maxDividend = Math.max(...monthlyDividends.map(m => m.value), 0);
+  const maxDividendMonth = monthlyDividends.find(m => m.value === maxDividend && maxDividend > 0);
+  const monthsWithData = monthlyDividends.filter(m => m.value > 0).length;
+  const avgMonthly = monthsWithData > 0 ? totalDividends / monthsWithData : 0;
+
+  return {
+    monthlyDividends,
+    totalDividends,
+    maxDividend,
+    maxDividendMonth: maxDividendMonth?.month || null,
+    avgMonthly,
+    isLoading,
+    hasDividends: totalDividends > 0,
+  };
+}

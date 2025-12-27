@@ -1,6 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAssetAllocation } from "@/hooks/usePortfolioData";
+import { useAssetAllocation, useMonthlyDividends } from "@/hooks/usePortfolioData";
 import { formatCurrencyBRL, formatNumberBR } from "@/lib/formatters";
 import {
   PieChart,
@@ -15,22 +15,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-
-// Mock monthly dividends data
-const monthlyDividends = [
-  { month: "Jan", value: 245.50 },
-  { month: "Fev", value: 312.00 },
-  { month: "Mar", value: 189.75 },
-  { month: "Abr", value: 425.30 },
-  { month: "Mai", value: 367.80 },
-  { month: "Jun", value: 298.45 },
-  { month: "Jul", value: 512.20 },
-  { month: "Ago", value: 445.60 },
-  { month: "Set", value: 378.90 },
-  { month: "Out", value: 289.00 },
-  { month: "Nov", value: 456.75 },
-  { month: "Dez", value: 534.40 },
-];
+import { TrendingUp } from "lucide-react";
 
 const CHART_COLORS = [
   "hsl(238, 84%, 67%)",  // primary/indigo
@@ -42,7 +27,16 @@ const CHART_COLORS = [
 ];
 
 export default function Analytics() {
-  const { allocation, isLoading } = useAssetAllocation();
+  const { allocation, isLoading: allocationLoading } = useAssetAllocation();
+  const { 
+    monthlyDividends, 
+    totalDividends, 
+    maxDividend, 
+    maxDividendMonth, 
+    avgMonthly,
+    isLoading: dividendsLoading,
+    hasDividends,
+  } = useMonthlyDividends();
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -89,8 +83,6 @@ export default function Analytics() {
     );
   };
 
-  const totalDividends = monthlyDividends.reduce((sum, m) => sum + m.value, 0);
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -106,7 +98,7 @@ export default function Analytics() {
               <CardTitle>Alocação por Setor</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {allocationLoading ? (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                   Carregando...
                 </div>
@@ -159,32 +151,48 @@ export default function Analytics() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyDividends} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                      tickFormatter={(value) => `R$${formatNumberBR(value, 0)}`}
-                    />
-                    <Tooltip content={<BarTooltip />} cursor={{ fill: "hsl(var(--secondary))" }} />
-                    <Bar
-                      dataKey="value"
-                      fill="hsl(160, 84%, 39%)"
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={40}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {dividendsLoading ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  Carregando...
+                </div>
+              ) : !hasDividends ? (
+                <div className="h-[300px] flex flex-col items-center justify-center gap-3">
+                  <TrendingUp className="h-12 w-12 text-muted-foreground/50" />
+                  <span className="text-muted-foreground text-sm text-center">
+                    Nenhum dividendo registrado este ano
+                  </span>
+                  <span className="text-muted-foreground/70 text-xs text-center">
+                    Adicione transações do tipo "Dividendo" para ver o gráfico
+                  </span>
+                </div>
+              ) : (
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={monthlyDividends} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        tickFormatter={(value) => `R$${formatNumberBR(value, 0)}`}
+                      />
+                      <Tooltip content={<BarTooltip />} cursor={{ fill: "hsl(var(--secondary))" }} />
+                      <Bar
+                        dataKey="value"
+                        fill="hsl(160, 84%, 39%)"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={40}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -199,8 +207,11 @@ export default function Analytics() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-foreground">
-                {formatCurrencyBRL(totalDividends / 12)}
+                {formatCurrencyBRL(avgMonthly)}
               </p>
+              {!hasDividends && (
+                <p className="text-xs text-muted-foreground">Nenhum dividendo registrado</p>
+              )}
             </CardContent>
           </Card>
 
@@ -212,9 +223,13 @@ export default function Analytics() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-gain">
-                {formatCurrencyBRL(Math.max(...monthlyDividends.map(m => m.value)))}
+                {formatCurrencyBRL(maxDividend)}
               </p>
-              <p className="text-xs text-muted-foreground">Dezembro</p>
+              {maxDividendMonth ? (
+                <p className="text-xs text-muted-foreground">{maxDividendMonth}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Nenhum dividendo registrado</p>
+              )}
             </CardContent>
           </Card>
 
