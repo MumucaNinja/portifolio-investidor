@@ -24,7 +24,7 @@ export function PlatformSettings() {
   const fetchSettings = async () => {
     setIsLoading(true);
     const { data, error } = await supabase.from("platform_settings").select("*");
-    if (error) toast({ variant: "destructive", title: "Error", description: error.message });
+    if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
     else setSettings(data || []);
     setIsLoading(false);
   };
@@ -33,23 +33,23 @@ export function PlatformSettings() {
     setUpdating(setting.id);
     const newValue = setting.value === "true" ? "false" : "true";
     const { error } = await supabase.from("platform_settings").update({ value: newValue }).eq("id", setting.id);
-    if (error) toast({ variant: "destructive", title: "Error", description: error.message });
-    else { toast({ title: "Setting updated" }); fetchSettings(); }
+    if (error) toast({ variant: "destructive", title: "Erro", description: error.message });
+    else { toast({ title: "Configuração atualizada" }); fetchSettings(); }
     setUpdating(null);
   };
 
   const getSettingLabel = (key: string) => {
     switch (key) {
-      case "maintenance_mode": return "Maintenance Mode";
-      case "allow_signups": return "Allow Signups";
+      case "maintenance_mode": return "Modo Manutenção";
+      case "allow_signups": return "Permitir Cadastros";
       default: return key;
     }
   };
 
   const getSettingDescription = (key: string) => {
     switch (key) {
-      case "maintenance_mode": return "When enabled, only admins can access the platform";
-      case "allow_signups": return "Allow new users to register on the platform";
+      case "maintenance_mode": return "Quando ativado, apenas admins podem acessar a plataforma";
+      case "allow_signups": return "Permitir que novos usuários se cadastrem na plataforma";
       default: return "";
     }
   };
@@ -57,8 +57,8 @@ export function PlatformSettings() {
   return (
     <Card className="glass-card">
       <CardHeader>
-        <CardTitle>Platform Settings</CardTitle>
-        <CardDescription>Configure global platform behavior</CardDescription>
+        <CardTitle>Configurações da Plataforma</CardTitle>
+        <CardDescription>Configure o comportamento global da plataforma</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : (

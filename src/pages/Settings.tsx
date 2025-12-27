@@ -11,16 +11,16 @@ export default function Settings() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage your preferences</p>
+          <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
+          <p className="text-muted-foreground">Gerencie suas preferências</p>
         </div>
         <Card className="glass-card">
-          <CardHeader><CardTitle>Appearance</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Aparência</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Theme</span>
+              <span className="text-muted-foreground">Tema</span>
               <Button variant="outline" onClick={toggleTheme}>
-                {theme === "dark" ? <><Sun className="h-4 w-4 mr-2" /> Light</> : <><Moon className="h-4 w-4 mr-2" /> Dark</>}
+                {theme === "dark" ? <><Sun className="h-4 w-4 mr-2" /> Claro</> : <><Moon className="h-4 w-4 mr-2" /> Escuro</>}
               </Button>
             </div>
           </CardContent>

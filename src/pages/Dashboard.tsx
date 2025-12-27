@@ -3,37 +3,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePortfolioSummary } from "@/hooks/usePortfolioData";
 import { TrendingUp, TrendingDown, Wallet, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrencyBRL, formatPercentBR } from "@/lib/formatters";
 
 export default function Dashboard() {
   const { totalValue, totalReturn, totalReturnPercent, dayGain, dayGainPercent, cashBalance, isLoading } = usePortfolioSummary();
 
-  const formatCurrency = (value: number) =>
-    value.toLocaleString("en-US", { style: "currency", currency: "USD" });
-
   const summaryCards = [
     {
-      title: "Total Net Worth",
-      value: formatCurrency(totalValue + cashBalance),
+      title: "Patrimônio Total",
+      value: formatCurrencyBRL(totalValue + cashBalance),
       icon: Wallet,
       trend: null,
     },
     {
-      title: "Day's Gain/Loss",
-      value: formatCurrency(dayGain),
+      title: "Variação do Dia",
+      value: formatCurrencyBRL(dayGain),
       icon: dayGain >= 0 ? TrendingUp : TrendingDown,
       trend: dayGainPercent,
       isPositive: dayGain >= 0,
     },
     {
-      title: "Total Return",
-      value: formatCurrency(totalReturn),
+      title: "Retorno Total",
+      value: formatCurrencyBRL(totalReturn),
       icon: totalReturn >= 0 ? TrendingUp : TrendingDown,
       trend: totalReturnPercent,
       isPositive: totalReturn >= 0,
     },
     {
-      title: "Cash Balance",
-      value: formatCurrency(cashBalance),
+      title: "Saldo em Caixa",
+      value: formatCurrencyBRL(cashBalance),
       icon: DollarSign,
       trend: null,
     },
@@ -43,8 +41,8 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Your portfolio overview</p>
+          <h1 className="text-3xl font-bold text-foreground">Início</h1>
+          <p className="text-muted-foreground">Visão geral do seu portfólio</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -60,7 +58,7 @@ export default function Dashboard() {
                 <div className="text-2xl font-bold">{isLoading ? "..." : card.value}</div>
                 {card.trend !== null && (
                   <p className={cn("text-xs mt-1", card.isPositive ? "text-gain" : "text-loss")}>
-                    {card.isPositive ? "+" : ""}{card.trend.toFixed(2)}%
+                    {formatPercentBR(card.trend)}
                   </p>
                 )}
               </CardContent>
@@ -70,11 +68,11 @@ export default function Dashboard() {
 
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle>Getting Started</CardTitle>
+            <CardTitle>Comece Agora</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Click "Add Transaction" in the sidebar to start tracking your investments. Your portfolio performance, holdings, and analytics will appear here as you add transactions.
+              Clique em "Nova Transação" na barra lateral para começar a rastrear seus investimentos. O desempenho do seu portfólio, posições e análises aparecerão aqui conforme você adiciona transações.
             </p>
           </CardContent>
         </Card>

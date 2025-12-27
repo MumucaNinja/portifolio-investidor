@@ -27,8 +27,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrencyBRL, formatDateLongBR } from "@/lib/formatters";
 
 interface AssetClass {
   id: string;
@@ -79,8 +81,8 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
     if (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to load asset classes",
+        title: "Erro",
+        description: "Falha ao carregar classes de ativos",
       });
     } else {
       setAssetClasses(data || []);
@@ -105,8 +107,8 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
     if (!ticker || !assetName || !assetClassId || !quantity || !pricePerUnit) {
       toast({
         variant: "destructive",
-        title: "Validation Error",
-        description: "Please fill in all required fields",
+        title: "Erro de Validação",
+        description: "Por favor, preencha todos os campos obrigatórios",
       });
       return;
     }
@@ -114,8 +116,8 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "You must be logged in to add transactions",
+        title: "Erro",
+        description: "Você precisa estar logado para adicionar transações",
       });
       return;
     }
@@ -138,13 +140,13 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
     if (error) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Erro",
         description: error.message,
       });
     } else {
       toast({
-        title: "Success!",
-        description: "Transaction added successfully",
+        title: "Sucesso!",
+        description: "Transação adicionada com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["holdings"] });
@@ -160,29 +162,29 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg bg-card">
         <DialogHeader>
-          <DialogTitle>Add Transaction</DialogTitle>
+          <DialogTitle>Nova Transação</DialogTitle>
           <DialogDescription>
-            Record a new buy or sell transaction for your portfolio.
+            Registre uma nova operação de compra ou venda no seu portfólio.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="ticker">Ticker Symbol *</Label>
+              <Label htmlFor="ticker">Ticker *</Label>
               <Input
                 id="ticker"
-                placeholder="AAPL"
+                placeholder="PETR4"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
                 className="uppercase"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="assetName">Asset Name *</Label>
+              <Label htmlFor="assetName">Nome do Ativo *</Label>
               <Input
                 id="assetName"
-                placeholder="Apple Inc."
+                placeholder="Petrobras PN"
                 value={assetName}
                 onChange={(e) => setAssetName(e.target.value)}
               />
@@ -191,10 +193,10 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Asset Class *</Label>
+              <Label>Classe do Ativo *</Label>
               <Select value={assetClassId} onValueChange={setAssetClassId}>
                 <SelectTrigger className="bg-secondary/50">
-                  <SelectValue placeholder={isLoading ? "Loading..." : "Select class"} />
+                  <SelectValue placeholder={isLoading ? "Carregando..." : "Selecione"} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
                   {assetClasses.map((ac) => (
@@ -212,7 +214,7 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Transaction Type</Label>
+              <Label>Tipo de Operação</Label>
               <div className="flex rounded-lg border border-input overflow-hidden">
                 <button
                   type="button"
@@ -224,7 +226,7 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                       : "bg-secondary text-muted-foreground hover:bg-secondary/80"
                   )}
                 >
-                  Buy
+                  Compra
                 </button>
                 <button
                   type="button"
@@ -236,14 +238,14 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                       : "bg-secondary text-muted-foreground hover:bg-secondary/80"
                   )}
                 >
-                  Sell
+                  Venda
                 </button>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Transaction Date</Label>
+            <Label>Data da Operação</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -254,7 +256,7 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {transactionDate ? format(transactionDate, "PPP") : "Pick a date"}
+                  {transactionDate ? formatDateLongBR(transactionDate) : "Escolha uma data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-popover" align="start">
@@ -262,6 +264,7 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
                   mode="single"
                   selected={transactionDate}
                   onSelect={(date) => date && setTransactionDate(date)}
+                  locale={ptBR}
                   initialFocus
                 />
               </PopoverContent>
@@ -270,29 +273,29 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity *</Label>
+              <Label htmlFor="quantity">Quantidade *</Label>
               <Input
                 id="quantity"
                 type="number"
                 step="any"
-                placeholder="10"
+                placeholder="100"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price">Price/Unit *</Label>
+              <Label htmlFor="price">Preço/Unidade *</Label>
               <Input
                 id="price"
                 type="number"
                 step="any"
-                placeholder="150.00"
+                placeholder="38,50"
                 value={pricePerUnit}
                 onChange={(e) => setPricePerUnit(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="fees">Fees</Label>
+              <Label htmlFor="fees">Taxas</Label>
               <Input
                 id="fees"
                 type="number"
@@ -306,9 +309,9 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
 
           <div className="p-4 rounded-lg bg-secondary/50">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total Value</span>
+              <span className="text-sm text-muted-foreground">Valor Total</span>
               <span className="text-lg font-bold text-foreground">
-                ${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatCurrencyBRL(totalValue)}
               </span>
             </div>
           </div>
@@ -320,11 +323,11 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
               className="flex-1"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" className="flex-1" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Add Transaction
+              Adicionar
             </Button>
           </div>
         </form>

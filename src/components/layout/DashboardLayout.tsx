@@ -38,11 +38,11 @@ interface DashboardLayoutProps {
 }
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/holdings", label: "Holdings", icon: Briefcase },
-  { to: "/transactions", label: "Transactions", icon: ArrowUpDown },
-  { to: "/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/dashboard", label: "Início", icon: LayoutDashboard },
+  { to: "/holdings", label: "Carteira", icon: Briefcase },
+  { to: "/transactions", label: "Transações", icon: ArrowUpDown },
+  { to: "/analytics", label: "Análises", icon: BarChart3 },
+  { to: "/settings", label: "Configurações", icon: Settings },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -68,7 +68,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="p-2 rounded-xl bg-primary/10">
             <TrendingUp className="h-6 w-6 text-primary" />
           </div>
-          <span className="text-lg font-bold text-foreground">Portfolio</span>
+          <span className="text-lg font-bold text-foreground">Portfólio</span>
         </div>
       </div>
 
@@ -106,7 +106,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             }
           >
             <Shield className="h-5 w-5" />
-            Admin Panel
+            Painel Admin
           </NavLink>
         )}
       </nav>
@@ -120,7 +120,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           className="w-full mb-4"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Transaction
+          Nova Transação
         </Button>
 
         <DropdownMenu>
@@ -144,19 +144,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               {theme === "dark" ? (
                 <>
                   <Sun className="h-4 w-4 mr-2" />
-                  Light Mode
+                  Modo Claro
                 </>
               ) : (
                 <>
                   <Moon className="h-4 w-4 mr-2" />
-                  Dark Mode
+                  Modo Escuro
                 </>
               )}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-loss">
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -177,7 +177,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="p-1.5 rounded-lg bg-primary/10">
             <TrendingUp className="h-5 w-5 text-primary" />
           </div>
-          <span className="font-bold text-foreground">Portfolio</span>
+          <span className="font-bold text-foreground">Portfólio</span>
         </div>
 
         <div className="flex items-center gap-2">

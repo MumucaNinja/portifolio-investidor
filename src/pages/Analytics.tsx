@@ -6,13 +6,13 @@ export default function Analytics() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Analytics</h1>
-          <p className="text-muted-foreground">Portfolio performance insights</p>
+          <h1 className="text-3xl font-bold text-foreground">Análises</h1>
+          <p className="text-muted-foreground">Insights de desempenho do portfólio</p>
         </div>
         <Card className="glass-card">
-          <CardHeader><CardTitle>Coming Soon</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Em Breve</CardTitle></CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">Advanced analytics including CAGR, Sharpe Ratio, sector breakdown, and monthly returns heatmap will be available here.</p>
+            <p className="text-muted-foreground">Análises avançadas incluindo CAGR, Índice Sharpe, breakdown por setor e mapa de calor de retornos mensais estarão disponíveis aqui.</p>
           </CardContent>
         </Card>
       </div>
