@@ -1,12 +1,19 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { usePortfolioSummary } from "@/hooks/usePortfolioData";
-import { TrendingUp, TrendingDown, Wallet, DollarSign } from "lucide-react";
+import { usePriceUpdate } from "@/hooks/usePriceUpdate";
+import { TrendingUp, TrendingDown, Wallet, DollarSign, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrencyBRL, formatPercentBR } from "@/lib/formatters";
+import { formatCurrencyBRL, formatPercentBR, formatDateLongBR } from "@/lib/formatters";
 
 export default function Dashboard() {
-  const { totalValue, totalReturn, totalReturnPercent, dayGain, dayGainPercent, cashBalance, isLoading } = usePortfolioSummary();
+  const { prices, lastUpdated, isUpdating, updatePrices } = usePriceUpdate();
+  const { totalValue, totalReturn, totalReturnPercent, dayGain, dayGainPercent, cashBalance, tickers, isLoading } = usePortfolioSummary(prices);
+
+  const handleUpdatePrices = () => {
+    updatePrices(tickers);
+  };
 
   const summaryCards = [
     {
@@ -40,9 +47,27 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Início</h1>
-          <p className="text-muted-foreground">Visão geral do seu portfólio</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Início</h1>
+            <p className="text-muted-foreground">Visão geral do seu portfólio</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {lastUpdated && (
+              <span className="text-xs text-muted-foreground">
+                Atualizado: {formatDateLongBR(lastUpdated)}
+              </span>
+            )}
+            <Button
+              onClick={handleUpdatePrices}
+              disabled={isUpdating || tickers.length === 0}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw className={cn("h-4 w-4 mr-2", isUpdating && "animate-spin")} />
+              {isUpdating ? "Atualizando..." : "Atualizar Cotações"}
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
