@@ -40,19 +40,9 @@ interface AssetAllocation {
   color: string;
 }
 
-// Mock current prices (in real app, would fetch from API)
-const mockPrices: Record<string, number> = {
-  AAPL: 178.50,
-  NVDA: 875.20,
-  MSFT: 378.90,
-  GOOGL: 142.65,
-  VOO: 445.30,
-  QQQ: 408.75,
-  VTI: 238.40,
-  BTC: 43500.00,
-  ETH: 2280.00,
-  VNQ: 82.15,
-};
+// Prices are now fetched from Brapi.dev API via usePriceUpdate hook
+// Empty fallback - real prices come from the API
+const fallbackPrices: Record<string, number> = {};
 
 export function useTransactions() {
   const { user } = useAuth();
@@ -81,10 +71,11 @@ export function useTransactions() {
   });
 }
 
-export function useHoldings() {
+export function useHoldings(externalPrices?: Record<string, number>) {
   const { data: transactions, isLoading } = useTransactions();
 
   const holdings: Holding[] = [];
+  const tickers: string[] = [];
 
   if (transactions) {
     const holdingsMap = new Map<string, {
@@ -119,7 +110,9 @@ export function useHoldings() {
 
     for (const [_, h] of holdingsMap) {
       if (h.total_quantity > 0) {
-        const currentPrice = mockPrices[h.ticker] || h.total_cost / h.total_quantity;
+        tickers.push(h.ticker);
+        // Use external prices if available, otherwise use average cost
+        const currentPrice = externalPrices?.[h.ticker] || h.total_cost / h.total_quantity;
         const currentValue = h.total_quantity * currentPrice;
         const profitLoss = currentValue - h.total_cost;
         const profitLossPercent = h.total_cost > 0 ? (profitLoss / h.total_cost) * 100 : 0;
@@ -141,11 +134,11 @@ export function useHoldings() {
     }
   }
 
-  return { holdings, isLoading };
+  return { holdings, tickers, isLoading };
 }
 
-export function usePortfolioSummary() {
-  const { holdings, isLoading } = useHoldings();
+export function usePortfolioSummary(externalPrices?: Record<string, number>) {
+  const { holdings, tickers, isLoading } = useHoldings(externalPrices);
 
   const totalValue = holdings.reduce((sum, h) => sum + h.current_value, 0);
   const totalCost = holdings.reduce((sum, h) => sum + h.total_cost, 0);
@@ -167,12 +160,13 @@ export function usePortfolioSummary() {
     dayGain,
     dayGainPercent,
     cashBalance,
+    tickers,
     isLoading,
   };
 }
 
-export function useAssetAllocation() {
-  const { holdings, isLoading } = useHoldings();
+export function useAssetAllocation(externalPrices?: Record<string, number>) {
+  const { holdings, isLoading } = useHoldings(externalPrices);
 
   const allocationMap = new Map<string, { value: number; color: string }>();
 
