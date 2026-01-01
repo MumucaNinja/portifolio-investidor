@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, Loader2 } from "lucide-react";
+import { TrendingUp, Loader2, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 const emailSchema = z.string().email("E-mail inválido");
 const passwordSchema = z.string().min(6, "A senha deve ter pelo menos 6 caracteres");
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -29,6 +30,10 @@ export default function Auth() {
       navigate("/dashboard");
     }
   }, [user, isLoading, navigate]);
+
+  useEffect(() => {
+    setIsLogin(searchParams.get("mode") !== "signup");
+  }, [searchParams]);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -104,14 +109,23 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      {/* Back to home link */}
+      <Link 
+        to="/" 
+        className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span className="text-sm">Voltar</span>
+      </Link>
+
       <div className="w-full max-w-md animate-fade-in">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="p-2 rounded-xl bg-primary/10">
-            <TrendingUp className="h-8 w-8 text-primary" />
+        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-emerald-500">
+            <TrendingUp className="h-8 w-8 text-white" />
           </div>
-          <span className="text-2xl font-bold text-foreground">Rastreador de Portfólio</span>
-        </div>
+          <span className="text-2xl font-bold text-foreground">PortfolioTracker</span>
+        </Link>
 
         <Card className="glass-card border-border/50">
           <CardHeader className="text-center">
