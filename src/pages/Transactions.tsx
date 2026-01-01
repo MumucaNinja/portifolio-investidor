@@ -67,8 +67,22 @@ export default function Transactions() {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["holdings"] });
       queryClient.invalidateQueries({ queryKey: ["portfolio-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["dividends"] });
     }
     setDeleteTransaction(null);
+  };
+
+  const getTransactionTypeBadge = (type: string) => {
+    switch (type) {
+      case "buy":
+        return <Badge className="bg-gain text-white">COMPRA</Badge>;
+      case "sell":
+        return <Badge className="bg-loss text-white">VENDA</Badge>;
+      case "dividend":
+        return <Badge className="bg-primary text-white">PROVENTO</Badge>;
+      default:
+        return <Badge>{type.toUpperCase()}</Badge>;
+    }
   };
 
   return (
@@ -113,15 +127,22 @@ export default function Transactions() {
                     <TableRow key={tx.id} className="hover:bg-secondary/50">
                       <TableCell>{formatDateBR(tx.transaction_date)}</TableCell>
                       <TableCell>
-                        <Badge className={cn(tx.transaction_type === "buy" ? "bg-gain" : "bg-loss", "text-white")}>
-                          {tx.transaction_type === "buy" ? "COMPRA" : "VENDA"}
-                        </Badge>
+                        {getTransactionTypeBadge(tx.transaction_type)}
                       </TableCell>
                       <TableCell className="font-medium">{tx.ticker}</TableCell>
                       <TableCell>{tx.asset_name}</TableCell>
-                      <TableCell className="text-right">{formatNumberBR(tx.quantity, 4)}</TableCell>
-                      <TableCell className="text-right">{formatCurrencyBRL(tx.price_per_unit)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrencyBRL(tx.total_value)}</TableCell>
+                      <TableCell className="text-right">
+                        {tx.transaction_type === "dividend" ? "-" : formatNumberBR(tx.quantity, 4)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {tx.transaction_type === "dividend" ? "-" : formatCurrencyBRL(tx.price_per_unit)}
+                      </TableCell>
+                      <TableCell className={cn(
+                        "text-right font-medium",
+                        tx.transaction_type === "dividend" && "text-gain"
+                      )}>
+                        {formatCurrencyBRL(tx.total_value)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button
