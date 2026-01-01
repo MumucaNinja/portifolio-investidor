@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// Schema for buy/sell transactions
 export const transactionSchema = z.object({
   ticker: z
     .string()
@@ -15,7 +16,7 @@ export const transactionSchema = z.object({
   asset_class_id: z
     .string()
     .uuid("Classe de ativo inválida"),
-  transaction_type: z.enum(["buy", "sell"], {
+  transaction_type: z.enum(["buy", "sell", "dividend"], {
     errorMap: () => ({ message: "Tipo de transação inválido" }),
   }),
   quantity: z
@@ -37,7 +38,35 @@ export const transactionSchema = z.object({
   }),
 });
 
+// Schema for dividend/proventos transactions (no quantity/price)
+export const dividendTransactionSchema = z.object({
+  ticker: z
+    .string()
+    .min(1, "Ticker é obrigatório")
+    .max(10, "Ticker deve ter no máximo 10 caracteres")
+    .regex(/^[A-Z0-9]+$/, "Ticker deve conter apenas letras maiúsculas e números")
+    .transform((val) => val.toUpperCase()),
+  asset_name: z
+    .string()
+    .min(1, "Nome do ativo é obrigatório")
+    .max(100, "Nome deve ter no máximo 100 caracteres")
+    .trim(),
+  asset_class_id: z
+    .string()
+    .uuid("Classe de ativo inválida"),
+  transaction_type: z.literal("dividend"),
+  total_value: z
+    .number({ invalid_type_error: "Valor deve ser um número" })
+    .positive("Valor deve ser positivo")
+    .finite("Valor inválido"),
+  transaction_date: z.date({
+    required_error: "Data é obrigatória",
+    invalid_type_error: "Data inválida",
+  }),
+});
+
 export type TransactionFormData = z.infer<typeof transactionSchema>;
+export type DividendFormData = z.infer<typeof dividendTransactionSchema>;
 
 export const assetClassSchema = z.object({
   name: z
