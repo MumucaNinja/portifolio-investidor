@@ -29,9 +29,10 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrencyBRL, formatDateLongBR } from "@/lib/formatters";
+import { BinanceImportDialog } from "./BinanceImportDialog";
 
 interface AssetClass {
   id: string;
@@ -58,6 +59,7 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   const [ticker, setTicker] = useState("");
   const [assetName, setAssetName] = useState("");
@@ -68,6 +70,35 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
   const [pricePerUnit, setPricePerUnit] = useState("");
   const [fees, setFees] = useState("0");
   const [totalValueDividend, setTotalValueDividend] = useState("");
+
+  // Handle imported data from Binance
+  const handleImportData = (data: {
+    ticker: string;
+    assetName: string;
+    quantity: number;
+    pricePerUnit: number;
+    totalValue: number;
+    date: Date;
+    transactionType: "buy" | "sell";
+  }) => {
+    setTicker(data.ticker);
+    setAssetName(data.assetName);
+    setQuantity(data.quantity.toString());
+    setPricePerUnit(data.pricePerUnit.toString());
+    setTransactionDate(data.date);
+    setTransactionType(data.transactionType);
+    
+    // Try to auto-select Criptomoeda asset class for crypto tickers
+    const cryptoClass = assetClasses.find((ac) => ac.name === "Criptomoeda");
+    if (cryptoClass) {
+      setAssetClassId(cryptoClass.id);
+    }
+    
+    toast({
+      title: "Dados importados!",
+      description: "Verifique os campos e clique em Adicionar.",
+    });
+  };
 
   // Get selected asset class name
   const selectedAssetClassName = useMemo(() => {
@@ -264,11 +295,29 @@ export function AddTransactionModal({ open, onOpenChange }: AddTransactionModalP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg bg-card">
         <DialogHeader>
-          <DialogTitle>Nova Transação</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Nova Transação</DialogTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowImportDialog(true)}
+              className="gap-1.5"
+            >
+              <Upload className="h-4 w-4" />
+              Importar
+            </Button>
+          </div>
           <DialogDescription>
-            Registre uma nova operação no seu portfólio.
+            Registre uma nova operação ou importe da Binance.
           </DialogDescription>
         </DialogHeader>
+
+        <BinanceImportDialog
+          open={showImportDialog}
+          onOpenChange={setShowImportDialog}
+          onImport={handleImportData}
+        />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
